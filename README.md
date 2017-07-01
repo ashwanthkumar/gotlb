@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ashwanthkumar/gotlb.svg?branch=master)](https://travis-ci.org/ashwanthkumar/gotlb)
+
 # GoTLB
 
 GoTLB is a Go based TCP Load Balancer built for marathon apps.
