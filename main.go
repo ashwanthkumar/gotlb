@@ -1,7 +1,16 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"os"
+
+	"github.com/ashwanthkumar/gotlb/providers"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	log.Println("Starting gotlb ...")
+	marathonHost := os.Args[1]
+
+	provider := providers.NewMarathonProvider(marathonHost)
+	NewManager().Start(provider)
 }

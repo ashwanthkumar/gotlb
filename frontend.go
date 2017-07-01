@@ -8,11 +8,11 @@ import (
 
 // NewFrontend creates a new Frontend instance with appId, frontend
 // and array of backends.
-func NewFrontend(appId, frontend string, backends []string) *Frontend {
+func NewFrontend(appId, port string, backends []string) *Frontend {
 	return &Frontend{
 		appId:    appId,
 		backends: backends,
-		frontend: frontend,
+		port:     port,
 	}
 }
 
@@ -21,15 +21,47 @@ type Frontend struct {
 	appId    string
 	lock     sync.Mutex
 	backends []string
-	frontend string
+	port     string
+	listener net.Listener
+}
+
+func (f *Frontend) Lookup() string {
+	return f.backends[0] // TODO - Replace this with a Strategy implementation for proper load balancing
+}
+
+func (f *Frontend) AddBackend(backend string) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	f.backends = append(f.backends, backend)
+}
+
+func (f *Frontend) RemoveBackend(backend string) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	idx, found := f.findIdxOfBackend(backend)
+	if found {
+		f.backends = append(f.backends[:idx], f.backends[idx+1:]...)
+	} else {
+		log.Printf("[WARN] Backend %s is not part of this frontend - %s\n", backend, f.appId)
+	}
+}
+
+func (f *Frontend) findIdxOfBackend(backend string) (int, bool) {
+	for idx, node := range f.backends {
+		if node == backend {
+			return idx, true
+		}
+	}
+
+	return -1, false
 }
 
 // Start listening on the frontend and start routing requests to backends
-func (p *Frontend) Start() {
-	log.Printf("Starting Frontend for %s via %s\n", p.appId, p.frontend)
-	l, err := net.Listen("tcp", ":"+p.frontend)
-	defer l.Close()
-	log.Printf("Started Frontend for %s at %s\n", p.appId, p.frontend)
+func (f *Frontend) Start() {
+	log.Printf("Starting Frontend for %s via %s\n", f.appId, f.port)
+	l, err := net.Listen("tcp", ":"+f.port)
+	f.listener = l
+	log.Printf("Started Frontend for %s at %s\n", f.appId, f.port)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,6 +75,15 @@ func (p *Frontend) Start() {
 		// Handle the connection in a new goroutine.
 		// The loop then returns to accepting, so that
 		// multiple connections may be served concurrently.
-		go NewRequest(conn, p.backends[0]) // TODO - Replace this with a Lookup() that does dynamic detection
+		go NewRequest(conn, f.Lookup())
 	}
+}
+
+func (f *Frontend) Stop() {
+	log.Println("[INFO] Stopping the frontend - " + f.appId)
+	err := f.listener.Close()
+	if err != nil {
+		log.Printf("[ERR] Error occured while closing the Frontend - %v\n", err)
+	}
+	log.Println("[INFO] Stopped the frontend - " + f.appId)
 }
