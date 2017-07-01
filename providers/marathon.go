@@ -85,7 +85,7 @@ func (m *MarathonProvider) start() {
 				if err != nil {
 					log.Printf("[WARN] Unable to get application - %s - %v\n", app.AppDefinition.ID, err)
 					fmt.Printf("Deleted the App spec - %v\n", app)
-					// check if the update is for known app
+					// check if the update is for known app, only then propagate
 					knownApp := m.containsApp(app.AppDefinition.ID)
 					if knownApp {
 						// most likely the app was destroyed
