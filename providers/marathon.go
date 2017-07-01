@@ -6,9 +6,10 @@ import (
 	"net/url"
 
 	"github.com/ashwanthkumar/golang-utils/maps"
-	"github.com/ashwanthkumar/golang-utils/sets"
 	marathon "github.com/gambol99/go-marathon"
 )
+
+type Labels map[string]string
 
 type MarathonProvider struct {
 	addBackend    chan<- BackendInfo
@@ -16,7 +17,7 @@ type MarathonProvider struct {
 	appUpdate     chan<- AppInfo
 	dropApp       chan<- AppInfo
 	stopMe        <-chan bool
-	apps          sets.Set
+	apps          map[string]Labels
 
 	marathonHost string
 }
@@ -24,7 +25,7 @@ type MarathonProvider struct {
 func NewMarathonProvider(marathonHost string) Provider {
 	return &MarathonProvider{
 		marathonHost: marathonHost,
-		apps:         sets.Empty(),
+		apps:         make(map[string]Labels),
 	}
 }
 
@@ -70,42 +71,34 @@ func (m *MarathonProvider) start() {
 			case marathon.EventIDStatusUpdate:
 				update := event.Event.(*marathon.EventStatusUpdate)
 				// check if the update is for known app
-				knownApp := m.apps.Contains(update.AppID)
+				knownApp := m.containsApp(update.AppID)
 
 				if knownApp && update.TaskStatus == "TASK_FAILED" {
-					m.removeBackend <- BackendInfo{
-						AppId: update.AppID,
-						// TODO - Support choosing different ports / ip address
-						Node: update.IPAddresses[0].IPAddress + ":" + fmt.Sprintf("%d", update.Ports[0]),
-					}
+					m.removeBackend <- *m.createBackendInfo(update.AppID, update.IPAddresses, update.Ports)
 				} else if knownApp && update.TaskStatus == "TASK_RUNNING" {
-					m.addBackend <- BackendInfo{
-						AppId: update.AppID,
-						// TODO - Support choosing different ports / ip address
-						Node: update.IPAddresses[0].IPAddress + ":" + fmt.Sprintf("%d", update.Ports[0]),
-					}
+					m.addBackend <- *m.createBackendInfo(update.AppID, update.IPAddresses, update.Ports)
 				}
 				// fmt.Printf("app=%s, id=%s, slaveId=%s, status=%s, host:ip=%s:%d\n", update.AppID, update.TaskID, update.SlaveID, update.TaskStatus, update.IPAddresses[0].IPAddress, update.Ports[0])
 			case marathon.EventIDAPIRequest:
-				appRequest := event.Event.(*marathon.EventAPIRequest)
-				_, err := client.Application(appRequest.AppDefinition.ID)
+				app := event.Event.(*marathon.EventAPIRequest)
+				_, err := client.Application(app.AppDefinition.ID)
 				if err != nil {
-					log.Printf("[WARN] Unable to get application - %s - %v\n", appRequest.AppDefinition.ID, err)
-					fmt.Printf("Deleted the App spec - %v\n", appRequest)
+					log.Printf("[WARN] Unable to get application - %s - %v\n", app.AppDefinition.ID, err)
+					fmt.Printf("Deleted the App spec - %v\n", app)
 					// check if the update is for known app
-					knownApp := m.apps.Contains(appRequest.AppDefinition.ID)
+					knownApp := m.containsApp(app.AppDefinition.ID)
 					if knownApp {
 						// most likely the app was destroyed
 						m.dropApp <- AppInfo{
-							AppId:  appRequest.AppDefinition.ID,
-							Labels: *appRequest.AppDefinition.Labels,
+							AppId:  app.AppDefinition.ID,
+							Labels: *app.AppDefinition.Labels,
 						}
 					}
 				} else {
-					fmt.Printf("New / Updated the App spec - %v\n", appRequest)
+					fmt.Printf("New / Updated the App spec - %v\n", app)
 					m.appUpdate <- AppInfo{
-						AppId:  appRequest.AppDefinition.ID,
-						Labels: *appRequest.AppDefinition.Labels,
+						AppId:  app.AppDefinition.ID,
+						Labels: *app.AppDefinition.Labels,
 					}
 				}
 			}
@@ -131,18 +124,32 @@ func (m *MarathonProvider) lookOverAllApps(client marathon.Marathon) {
 					Labels: *app.Labels,
 				}
 				// add this app to the list of known apps
-				m.apps.Add(app.ID)
-				portIndex := maps.GetInt(*app.Labels, "tlb.portIndex", 0)
-				log.Printf("[DEBUG] portIndex used for %s is %d\n", app.ID, portIndex)
-				// add the list of tasks to update the backend
+				m.appApp(app.ID, *app.Labels)
 				for _, task := range app.Tasks {
-					log.Printf("[DEBUG] Adding backend for %s as %v\n", app.ID, task)
-					m.addBackend <- BackendInfo{
-						AppId: app.ID,
-						Node:  task.IPAddresses[portIndex].IPAddress + ":" + fmt.Sprintf("%d", task.Ports[portIndex]),
-					}
+					backendInfo := m.createBackendInfo(app.ID, task.IPAddresses, task.Ports)
+					log.Printf("[DEBUG] Adding backend for %s as %v\n", app.ID, backendInfo.Node)
+					m.addBackend <- *backendInfo
 				}
 			}
 		}
+	}
+}
+
+func (m *MarathonProvider) containsApp(appId string) bool {
+	_, present := m.apps[appId]
+	return present
+}
+
+func (m *MarathonProvider) appApp(appId string, labels map[string]string) {
+	m.apps[appId] = labels
+}
+
+func (m *MarathonProvider) createBackendInfo(appId string, ipAddresses []*marathon.IPAddress, ports []int) *BackendInfo {
+	appLabels := m.apps[appId]
+	portIndex := maps.GetInt(appLabels, "tlb.portIndex", 0)
+
+	return &BackendInfo{
+		AppId: appId,
+		Node:  ipAddresses[portIndex].IPAddress + ":" + fmt.Sprintf("%d", ports[portIndex]),
 	}
 }
