@@ -16,6 +16,8 @@ $ gotlb http://marathon.host:8080
 - Round Robin based LoadBalancingStrategy
 - Marathon provider (more providers are welcome)
 - Live updating of routing table (no downtime)
+- Zero configuration (except for marathon host)
+- Application specification in marathon is the source of truth. Configurations done via [labels](https://github.com/ashwanthkumar/gotlb#required-labels).
 
 ## TODO
 - [ ] TLS
