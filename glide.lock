@@ -1,5 +1,5 @@
-hash: 61c44d87c4acd2f0bea7df3168f0147f8a82da1c25195a32e5ecdd80e9d40297
-updated: 2017-07-01T23:20:37.590127681+05:30
+hash: d0a0a35caf1f5e0dfebac73a087824453932ab2f8daea94f5a8aeae93882c65b
+updated: 2017-07-02T00:19:34.300320771+05:30
 imports:
 - name: github.com/ashwanthkumar/golang-utils
   version: 1a6217810a73989dc6437e4a942f08e455ae9da3
@@ -18,8 +18,20 @@ imports:
   version: 28f7c3f09254f12b51e620fa4db136ba58804762
 - name: github.com/rcrowley/go-metrics
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
 - name: github.com/Workiva/go-datastructures
   version: 01ff43b05e5593e6e41f5988797126402611e2d7
   subpackages:
   - queue
-testImports: []
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
