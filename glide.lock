@@ -1,4 +1,27 @@
-hash: 58dd63da5e3482966a8a2e931febefed3a2495445bd0d81bf81a2603d3fadb05
-updated: 2017-07-01T11:46:12.507885196+05:30
-imports: []
+hash: 1265ed1829cdaa5c6bcf177a1615c060580cbdc29424f062bd34b63291f17958
+updated: 2017-07-01T16:03:40.858170331+05:30
+imports:
+- name: github.com/Workiva/go-datastructures
+  version: 01ff43b05e5593e6e41f5988797126402611e2d7
+  subpackages:
+  - queue
+  - augmentedtree
+  - bitarray
+  - btree/palm
+  - btree/plus
+  - fibheap
+  - futures
+  - hashmap/fastinteger
+  - numerics/optimization
+  - rangetree
+  - rangetree/skiplist
+  - set
+  - slice
+  - slice/skip
+  - sort
+  - threadsafe/err
+  - tree/avl
+  - trie/xfast
+  - trie/yfast
+  - common
 devImports: []

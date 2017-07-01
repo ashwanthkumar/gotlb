@@ -1,2 +1,5 @@
 package: github.com/ashwanthkumar/gotlb
-import: []
+import:
+- package: github.com/Workiva/go-datastructures
+  subpackages:
+  - queue
