@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.8.x
+
+# Install glide
+addons:
+  apt:
+    sources:
+    - sourceline: 'ppa:masterminds/glide'
+    packages:
+    - glide
+
+install:
+  - make setup
+
+script:
+  - make test
+  - make build-all
