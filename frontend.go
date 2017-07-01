@@ -4,6 +4,8 @@ import (
 	"log"
 	"net"
 	"sync"
+
+	"github.com/rcrowley/go-metrics"
 )
 
 // NewFrontend creates a new Frontend instance with appId, frontend
@@ -76,10 +78,12 @@ func (f *Frontend) Start() {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		metrics.GetOrRegisterCounter("frontend-requests", MetricsRegistry).Inc(int64(1))
 		// Handle the connection in a new goroutine.
 		// The loop then returns to accepting, so that
 		// multiple connections may be served concurrently.
-		go NewRequest(conn, f.Lookup())
+		go NewRequest(conn, f.Lookup(), f.appId)
 	}
 }
 

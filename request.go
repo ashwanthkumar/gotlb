@@ -4,15 +4,21 @@ import (
 	"io"
 	"log"
 	"net"
+
+	"github.com/rcrowley/go-metrics"
 )
 
-func NewRequest(in net.Conn, backend string) error {
-	var p = Request{backend}
-	return p.Accept(in)
+func NewRequest(in net.Conn, backend, appId string) (err error) {
+	var p = Request{backend, appId}
+	metrics.GetOrRegisterTimer("request-latency", MetricsRegistry).Time(func() {
+		err = p.Accept(in)
+	})
+	return err
 }
 
 type Request struct {
 	backend string
+	appId   string
 }
 
 // Start the request proxy from source -> upstream backend
