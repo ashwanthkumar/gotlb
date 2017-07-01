@@ -11,11 +11,23 @@ const APP_ID = "/fake-app-id"
 
 func TestManagerToCreateNewFrontendIfNotExist(t *testing.T) {
 	m := NewManager()
-	appInfo := createAppInfo(createAppLabels("0"))
+	appInfo := createAppInfo(APP_ID, createAppLabels("0"))
 	m.CreateNewFrontendIfNotExist(appInfo)
 	f, exist := m.getFrontend(appInfo.AppId)
 	assert.Equal(t, true, exist)
 	f.Stop()
+}
+
+func TestManagerToRemoveFrontend(t *testing.T) {
+	m := NewManager()
+	frontend := createFrontend(APP_ID, "-1", []string{"b:1", "b:2"})
+	m.addFrontend(APP_ID, frontend)
+
+	labels := createAppLabels("0")
+	m.RemoveFrontend(createAppInfo(APP_ID, labels))
+	f, exists := m.getFrontend(APP_ID)
+	assert.Equal(t, false, exists)
+	assert.Nil(t, f)
 }
 
 func TestManagerToAddBackendForAppShouldThrowAnErrorWhenNoFrontendIsAvailableForTheApp(t *testing.T) {
@@ -59,9 +71,9 @@ func createAppLabels(port string) map[string]string {
 	return labels
 }
 
-func createAppInfo(labels map[string]string) *types.AppInfo {
+func createAppInfo(appId string, labels map[string]string) *types.AppInfo {
 	return &types.AppInfo{
-		AppId:  APP_ID,
+		AppId:  appId,
 		Labels: labels,
 	}
 }
