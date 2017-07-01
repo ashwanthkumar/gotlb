@@ -15,6 +15,7 @@ $ gotlb http://marathon.host:8080
 - RAW TCP Support
 - Round Robin based LoadBalancingStrategy
 - Marathon provider (more providers are welcome)
+- Live updating of routing table (no downtime)
 
 ## TODO
 - [ ] TLS
