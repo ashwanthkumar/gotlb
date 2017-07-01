@@ -1,6 +1,9 @@
 APPNAME = gotlb
 VERSION = 0.0.1-dev
 
+test:
+	go test -v github.com/ashwanthkumar/gotlb
+
 setup:
 	glide install
 
@@ -19,9 +22,6 @@ clean:
 	rm -f ${APPNAME}
 	rm -f ${APPNAME}-linux-amd64
 	rm -f ${APPNAME}-darwin-amd64
-
-test:
-	go test -v github.com/ashwanthkumar/gotlb
 
 install: build
 	sudo install -d /usr/local/bin
