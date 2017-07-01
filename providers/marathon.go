@@ -13,10 +13,10 @@ import (
 type Labels map[string]string
 
 type MarathonProvider struct {
-	addBackend    chan<- types.BackendInfo
-	removeBackend chan<- types.BackendInfo
-	appUpdate     chan<- types.AppInfo
-	dropApp       chan<- types.AppInfo
+	addBackend    chan<- *types.BackendInfo
+	removeBackend chan<- *types.BackendInfo
+	appUpdate     chan<- *types.AppInfo
+	dropApp       chan<- *types.AppInfo
 	stopMe        <-chan bool
 	apps          map[string]Labels
 
@@ -31,10 +31,10 @@ func NewMarathonProvider(marathonHost string) Provider {
 }
 
 func (m *MarathonProvider) Provide(
-	addBackend chan<- types.BackendInfo,
-	removeBackend chan<- types.BackendInfo,
-	appUpdate chan<- types.AppInfo,
-	dropApp chan<- types.AppInfo,
+	addBackend chan<- *types.BackendInfo,
+	removeBackend chan<- *types.BackendInfo,
+	appUpdate chan<- *types.AppInfo,
+	dropApp chan<- *types.AppInfo,
 	stop <-chan bool) error {
 	m.addBackend = addBackend
 	m.removeBackend = removeBackend
@@ -75,9 +75,9 @@ func (m *MarathonProvider) start() {
 				knownApp := m.containsApp(update.AppID)
 
 				if knownApp && update.TaskStatus == "TASK_FAILED" {
-					m.removeBackend <- *m.createBackendInfo(update.AppID, update.IPAddresses, update.Ports)
+					m.removeBackend <- m.createBackendInfo(update.AppID, update.IPAddresses, update.Ports)
 				} else if knownApp && update.TaskStatus == "TASK_RUNNING" {
-					m.addBackend <- *m.createBackendInfo(update.AppID, update.IPAddresses, update.Ports)
+					m.addBackend <- m.createBackendInfo(update.AppID, update.IPAddresses, update.Ports)
 				}
 				// fmt.Printf("app=%s, id=%s, slaveId=%s, status=%s, host:ip=%s:%d\n", update.AppID, update.TaskID, update.SlaveID, update.TaskStatus, update.IPAddresses[0].IPAddress, update.Ports[0])
 			case marathon.EventIDAPIRequest:
@@ -90,14 +90,14 @@ func (m *MarathonProvider) start() {
 					knownApp := m.containsApp(app.AppDefinition.ID)
 					if knownApp {
 						// most likely the app was destroyed
-						m.dropApp <- types.AppInfo{
+						m.dropApp <- &types.AppInfo{
 							AppId:  app.AppDefinition.ID,
 							Labels: *app.AppDefinition.Labels,
 						}
 					}
 				} else {
 					fmt.Printf("New / Updated the App spec - %v\n", app)
-					m.appUpdate <- types.AppInfo{
+					m.appUpdate <- &types.AppInfo{
 						AppId:  app.AppDefinition.ID,
 						Labels: *app.AppDefinition.Labels,
 					}
@@ -120,7 +120,7 @@ func (m *MarathonProvider) lookOverAllApps(client marathon.Marathon) {
 		for _, app := range apps.Apps {
 			if maps.GetBoolean(*app.Labels, types.TLB_ENABLED, false) {
 				log.Printf("Adding new app - %s\n", app.ID)
-				m.appUpdate <- types.AppInfo{
+				m.appUpdate <- &types.AppInfo{
 					AppId:  app.ID,
 					Labels: *app.Labels,
 				}
@@ -129,7 +129,7 @@ func (m *MarathonProvider) lookOverAllApps(client marathon.Marathon) {
 				for _, task := range app.Tasks {
 					backendInfo := m.createBackendInfo(app.ID, task.IPAddresses, task.Ports)
 					log.Printf("[DEBUG] Adding backend for %s as %v\n", app.ID, backendInfo.Node)
-					m.addBackend <- *backendInfo
+					m.addBackend <- backendInfo
 				}
 			}
 		}

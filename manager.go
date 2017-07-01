@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -27,10 +28,10 @@ func NewManager() *Manager {
 
 // Start starts the manager with the given provider
 func (m *Manager) Start(provider providers.Provider) {
-	addBackend := make(chan types.BackendInfo)
-	removeBackend := make(chan types.BackendInfo)
-	newApp := make(chan types.AppInfo)
-	destroyApp := make(chan types.AppInfo)
+	addBackend := make(chan *types.BackendInfo)
+	removeBackend := make(chan *types.BackendInfo)
+	newApp := make(chan *types.AppInfo)
+	destroyApp := make(chan *types.AppInfo)
 	stopProvider := make(chan bool)
 
 	err := provider.Provide(addBackend, removeBackend, newApp, destroyApp, stopProvider)
@@ -42,9 +43,15 @@ func (m *Manager) Start(provider providers.Provider) {
 	for running {
 		select {
 		case newBackend := <-addBackend:
-			m.AddBackendForApp(newBackend)
+			err := m.AddBackendForApp(newBackend)
+			if err != nil {
+				log.Printf("[WARN] %v\n", err)
+			}
 		case existingBackend := <-removeBackend:
-			m.RemoveBackendForApp(existingBackend)
+			err := m.RemoveBackendForApp(existingBackend)
+			if err != nil {
+				log.Printf("[WARN] %v\n", err)
+			}
 		case app := <-newApp:
 			m.CreateNewFrontendIfNotExist(app)
 		case app := <-destroyApp:
@@ -55,7 +62,7 @@ func (m *Manager) Start(provider providers.Provider) {
 
 // RemoveFrontend  removes the specific frontend associated with the app
 // it tries to do a graceful shutdown of the frontend
-func (m *Manager) RemoveFrontend(app types.AppInfo) {
+func (m *Manager) RemoveFrontend(app *types.AppInfo) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	frontend, present := m.frontends[app.AppId]
@@ -67,7 +74,7 @@ func (m *Manager) RemoveFrontend(app types.AppInfo) {
 
 // CreateNewFrontendIfNotExist creates a new frontend and starts it, if one does not exist
 // else ignores the app spec associated with it
-func (m *Manager) CreateNewFrontendIfNotExist(app types.AppInfo) {
+func (m *Manager) CreateNewFrontendIfNotExist(app *types.AppInfo) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
@@ -83,21 +90,34 @@ func (m *Manager) CreateNewFrontendIfNotExist(app types.AppInfo) {
 }
 
 // AddBackendForApp adds the backend to the list of existing backends for the app
-func (m *Manager) AddBackendForApp(backend types.BackendInfo) {
+func (m *Manager) AddBackendForApp(backend *types.BackendInfo) error {
 	frontend, present := m.frontends[backend.AppId]
 	if present {
 		frontend.AddBackend(backend.Node)
+		return nil
 	} else {
-		log.Printf("[WARN] Frontend for %s not found. Oops!", backend.AppId)
+		return fmt.Errorf("[WARN] Frontend for %s not found. Oops!", backend.AppId)
 	}
 }
 
 // RemoveBackendForApp removes a specific backend for the app
-func (m *Manager) RemoveBackendForApp(backend types.BackendInfo) {
+func (m *Manager) RemoveBackendForApp(backend *types.BackendInfo) error {
 	frontend, present := m.frontends[backend.AppId]
 	if present {
 		frontend.RemoveBackend(backend.Node)
+		return nil
 	} else {
-		log.Printf("[WARN] Frontend for %s not found. Oops!", backend.AppId)
+		return fmt.Errorf("[WARN] Frontend for %s not found. Oops!", backend.AppId)
 	}
+}
+
+// Used only for tests
+func (m *Manager) getFrontend(appId string) (*Frontend, bool) {
+	f, exists := m.frontends[appId]
+	return f, exists
+}
+
+// Used only for tests
+func (m *Manager) addFrontend(appId string, frontend *Frontend) {
+	m.frontends[appId] = frontend
 }

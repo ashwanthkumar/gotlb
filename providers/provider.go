@@ -12,9 +12,9 @@ type Provider interface {
 	// appUpdate - A New app has been deployed / an update to an existing app has been deployed
 	// dropApp - An Existing app has been destroyed, we can kill the Frontend for that app
 	// stop - Send a value to shutdown the provider, used to gracefully shutdown
-	Provide(addBackend chan<- types.BackendInfo,
-		removeBackend chan<- types.BackendInfo,
-		appUpdate chan<- types.AppInfo,
-		dropApp chan<- types.AppInfo,
+	Provide(addBackend chan<- *types.BackendInfo,
+		removeBackend chan<- *types.BackendInfo,
+		appUpdate chan<- *types.AppInfo,
+		dropApp chan<- *types.AppInfo,
 		stop <-chan bool) error
 }

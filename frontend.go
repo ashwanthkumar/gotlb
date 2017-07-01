@@ -52,6 +52,12 @@ func (f *Frontend) RemoveBackend(backend string) {
 	f.strategy.RemoveBackend(backend)
 }
 
+func (f *Frontend) LenOfBackends() int {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	return len(f.backends)
+}
+
 func (f *Frontend) findIdxOfBackend(backend string) (int, bool) {
 	for idx, node := range f.backends {
 		if node == backend {
@@ -89,9 +95,11 @@ func (f *Frontend) Start() {
 
 func (f *Frontend) Stop() {
 	log.Println("[INFO] Stopping the frontend - " + f.appId)
-	err := f.listener.Close()
-	if err != nil {
-		log.Printf("[ERR] Error occured while closing the Frontend - %v\n", err)
+	if f.listener != nil {
+		err := f.listener.Close()
+		if err != nil {
+			log.Printf("[ERR] Error occured while closing the Frontend - %v\n", err)
+		}
 	}
 	log.Println("[INFO] Stopped the frontend - " + f.appId)
 }
