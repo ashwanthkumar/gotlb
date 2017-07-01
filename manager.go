@@ -6,6 +6,7 @@ import (
 
 	"github.com/ashwanthkumar/golang-utils/maps"
 	"github.com/ashwanthkumar/gotlb/providers"
+	"github.com/ashwanthkumar/gotlb/types"
 )
 
 // Manager is an abstraction that is responsible for all the frontends
@@ -26,10 +27,10 @@ func NewManager() *Manager {
 
 // Start starts the manager with the given provider
 func (m *Manager) Start(provider providers.Provider) {
-	addBackend := make(chan providers.BackendInfo)
-	removeBackend := make(chan providers.BackendInfo)
-	newApp := make(chan providers.AppInfo)
-	destroyApp := make(chan providers.AppInfo)
+	addBackend := make(chan types.BackendInfo)
+	removeBackend := make(chan types.BackendInfo)
+	newApp := make(chan types.AppInfo)
+	destroyApp := make(chan types.AppInfo)
 	stopProvider := make(chan bool)
 
 	err := provider.Provide(addBackend, removeBackend, newApp, destroyApp, stopProvider)
@@ -54,7 +55,7 @@ func (m *Manager) Start(provider providers.Provider) {
 
 // RemoveFrontend  removes the specific frontend associated with the app
 // it tries to do a graceful shutdown of the frontend
-func (m *Manager) RemoveFrontend(app providers.AppInfo) {
+func (m *Manager) RemoveFrontend(app types.AppInfo) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 	frontend, present := m.frontends[app.AppId]
@@ -66,13 +67,13 @@ func (m *Manager) RemoveFrontend(app providers.AppInfo) {
 
 // CreateNewFrontendIfNotExist creates a new frontend and starts it, if one does not exist
 // else ignores the app spec associated with it
-func (m *Manager) CreateNewFrontendIfNotExist(app providers.AppInfo) {
+func (m *Manager) CreateNewFrontendIfNotExist(app types.AppInfo) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
 
 	frontend, _ := m.frontends[app.AppId]
-	if frontend == nil && maps.Contains(app.Labels, "tlb.port") {
-		port := maps.GetString(app.Labels, "tlb.port", "-1")
+	if frontend == nil && maps.Contains(app.Labels, types.TLB_PORT) {
+		port := maps.GetString(app.Labels, types.TLB_PORT, "-1")
 		frontend = NewFrontend(app.AppId, port, []string{})
 		go frontend.Start() // start the frontend
 		m.frontends[app.AppId] = frontend
@@ -82,7 +83,7 @@ func (m *Manager) CreateNewFrontendIfNotExist(app providers.AppInfo) {
 }
 
 // AddBackendForApp adds the backend to the list of existing backends for the app
-func (m *Manager) AddBackendForApp(backend providers.BackendInfo) {
+func (m *Manager) AddBackendForApp(backend types.BackendInfo) {
 	frontend, present := m.frontends[backend.AppId]
 	if present {
 		frontend.AddBackend(backend.Node)
@@ -92,7 +93,7 @@ func (m *Manager) AddBackendForApp(backend providers.BackendInfo) {
 }
 
 // RemoveBackendForApp removes a specific backend for the app
-func (m *Manager) RemoveBackendForApp(backend providers.BackendInfo) {
+func (m *Manager) RemoveBackendForApp(backend types.BackendInfo) {
 	frontend, present := m.frontends[backend.AppId]
 	if present {
 		frontend.RemoveBackend(backend.Node)

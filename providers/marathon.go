@@ -6,16 +6,17 @@ import (
 	"net/url"
 
 	"github.com/ashwanthkumar/golang-utils/maps"
+	"github.com/ashwanthkumar/gotlb/types"
 	marathon "github.com/gambol99/go-marathon"
 )
 
 type Labels map[string]string
 
 type MarathonProvider struct {
-	addBackend    chan<- BackendInfo
-	removeBackend chan<- BackendInfo
-	appUpdate     chan<- AppInfo
-	dropApp       chan<- AppInfo
+	addBackend    chan<- types.BackendInfo
+	removeBackend chan<- types.BackendInfo
+	appUpdate     chan<- types.AppInfo
+	dropApp       chan<- types.AppInfo
 	stopMe        <-chan bool
 	apps          map[string]Labels
 
@@ -30,10 +31,10 @@ func NewMarathonProvider(marathonHost string) Provider {
 }
 
 func (m *MarathonProvider) Provide(
-	addBackend chan<- BackendInfo,
-	removeBackend chan<- BackendInfo,
-	appUpdate chan<- AppInfo,
-	dropApp chan<- AppInfo,
+	addBackend chan<- types.BackendInfo,
+	removeBackend chan<- types.BackendInfo,
+	appUpdate chan<- types.AppInfo,
+	dropApp chan<- types.AppInfo,
 	stop <-chan bool) error {
 	m.addBackend = addBackend
 	m.removeBackend = removeBackend
@@ -89,14 +90,14 @@ func (m *MarathonProvider) start() {
 					knownApp := m.containsApp(app.AppDefinition.ID)
 					if knownApp {
 						// most likely the app was destroyed
-						m.dropApp <- AppInfo{
+						m.dropApp <- types.AppInfo{
 							AppId:  app.AppDefinition.ID,
 							Labels: *app.AppDefinition.Labels,
 						}
 					}
 				} else {
 					fmt.Printf("New / Updated the App spec - %v\n", app)
-					m.appUpdate <- AppInfo{
+					m.appUpdate <- types.AppInfo{
 						AppId:  app.AppDefinition.ID,
 						Labels: *app.AppDefinition.Labels,
 					}
@@ -117,9 +118,9 @@ func (m *MarathonProvider) lookOverAllApps(client marathon.Marathon) {
 		log.Printf("[WARN] Initializing with all applications failed - %v\n", err)
 	} else {
 		for _, app := range apps.Apps {
-			if maps.GetBoolean(*app.Labels, "tlb.enabled", false) {
+			if maps.GetBoolean(*app.Labels, types.TLB_ENABLED, false) {
 				log.Printf("Adding new app - %s\n", app.ID)
-				m.appUpdate <- AppInfo{
+				m.appUpdate <- types.AppInfo{
 					AppId:  app.ID,
 					Labels: *app.Labels,
 				}
@@ -144,11 +145,11 @@ func (m *MarathonProvider) appApp(appId string, labels map[string]string) {
 	m.apps[appId] = labels
 }
 
-func (m *MarathonProvider) createBackendInfo(appId string, ipAddresses []*marathon.IPAddress, ports []int) *BackendInfo {
+func (m *MarathonProvider) createBackendInfo(appId string, ipAddresses []*marathon.IPAddress, ports []int) *types.BackendInfo {
 	appLabels := m.apps[appId]
-	portIndex := maps.GetInt(appLabels, "tlb.portIndex", 0)
+	portIndex := maps.GetInt(appLabels, types.TLB_PORTINDEX, 0)
 
-	return &BackendInfo{
+	return &types.BackendInfo{
 		AppId: appId,
 		Node:  ipAddresses[portIndex].IPAddress + ":" + fmt.Sprintf("%d", ports[portIndex]),
 	}

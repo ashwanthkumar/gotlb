@@ -25,7 +25,9 @@ type LoadBalancingStrategy interface {
 
 // LeastConnection is an implementation of Strategy that routes
 // requests to a backend based on least number of connections
-type LeastConnection struct{}
+type LeastConnection struct {
+	// TODO - implementat LeastConnection LoadBalancingStrategy
+}
 
 // RoundRobin is an implementation of Strategy that routes
 // requests to a backend based on round robin fashion

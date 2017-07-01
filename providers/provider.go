@@ -1,17 +1,6 @@
 package providers
 
-// BackendInfo represents a message from the provider when a new backend is added
-// or an existing backend for the app is removed.
-type BackendInfo struct {
-	AppId string
-	Node  string
-}
-
-// AppInfo represents the information related to the app
-type AppInfo struct {
-	AppId  string
-	Labels map[string]string
-}
+import "github.com/ashwanthkumar/gotlb/types"
 
 // Provider interface defines an implementation that can be used to fetch
 // the list of servers for an App. Eg - Marathon, Consul, EtcD, etc.
@@ -23,9 +12,9 @@ type Provider interface {
 	// appUpdate - A New app has been deployed / an update to an existing app has been deployed
 	// dropApp - An Existing app has been destroyed, we can kill the Frontend for that app
 	// stop - Send a value to shutdown the provider, used to gracefully shutdown
-	Provide(addBackend chan<- BackendInfo,
-		removeBackend chan<- BackendInfo,
-		appUpdate chan<- AppInfo,
-		dropApp chan<- AppInfo,
+	Provide(addBackend chan<- types.BackendInfo,
+		removeBackend chan<- types.BackendInfo,
+		appUpdate chan<- types.AppInfo,
+		dropApp chan<- types.AppInfo,
 		stop <-chan bool) error
 }
