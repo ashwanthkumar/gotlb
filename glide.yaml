@@ -11,3 +11,4 @@ import:
   - maps
 - package: github.com/oleiade/lane
   version: v1.0.0
+- package: github.com/rcrowley/go-metrics

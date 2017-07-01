@@ -1,5 +1,5 @@
-hash: 008c87a0058f7d50162b67a109dcaf05deb4873549476aab1cb8531299ff144f
-updated: 2017-07-01T22:22:39.639749024+05:30
+hash: 61c44d87c4acd2f0bea7df3168f0147f8a82da1c25195a32e5ecdd80e9d40297
+updated: 2017-07-01T23:20:37.590127681+05:30
 imports:
 - name: github.com/ashwanthkumar/golang-utils
   version: 1a6217810a73989dc6437e4a942f08e455ae9da3
@@ -16,6 +16,8 @@ imports:
   - query
 - name: github.com/oleiade/lane
   version: 28f7c3f09254f12b51e620fa4db136ba58804762
+- name: github.com/rcrowley/go-metrics
+  version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
 - name: github.com/Workiva/go-datastructures
   version: 01ff43b05e5593e6e41f5988797126402611e2d7
   subpackages:
