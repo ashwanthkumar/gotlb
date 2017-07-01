@@ -1,6 +1,11 @@
-hash: dfdc9eff01a14b5b2869c72a7d05418cf5a7bf576fbb17ffe7f78e42e3bb8679
-updated: 2017-07-01T16:32:14.658501722+05:30
+hash: d4d4d3dedc5601f8dd16d9b0524c332757c1d856430e3dffd93e3c10a12990c4
+updated: 2017-07-01T22:12:10.714951374+05:30
 imports:
+- name: github.com/ashwanthkumar/golang-utils
+  version: 1a6217810a73989dc6437e4a942f08e455ae9da3
+  subpackages:
+  - maps
+  - sets
 - name: github.com/donovanhide/eventsource
   version: b8f31a59085e69dd2678cf51840db2ac625cb741
 - name: github.com/gambol99/go-marathon
@@ -13,23 +18,4 @@ imports:
   version: 01ff43b05e5593e6e41f5988797126402611e2d7
   subpackages:
   - queue
-  - augmentedtree
-  - bitarray
-  - btree/palm
-  - btree/plus
-  - fibheap
-  - futures
-  - hashmap/fastinteger
-  - numerics/optimization
-  - rangetree
-  - rangetree/skiplist
-  - set
-  - slice
-  - slice/skip
-  - sort
-  - threadsafe/err
-  - tree/avl
-  - trie/xfast
-  - trie/yfast
-  - common
-devImports: []
+testImports: []

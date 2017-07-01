@@ -5,3 +5,7 @@ import:
   - queue
 - package: github.com/gambol99/go-marathon
   version: 0.7.1
+- package: github.com/ashwanthkumar/golang-utils
+  subpackages:
+  - sets
+  - maps
