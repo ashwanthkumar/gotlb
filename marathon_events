@@ -1,2 +1,0 @@
-New / Update of App Processed - {/staging.ix-route map[alerts.min-healthy.critical.threshold:0.7 alerts.enabled:false alerts.min-instances.critical.threshold:0.7 logs.files:logs/ix-route.log,stdout,stderr tlb.port:13001 alerts.slack.owners:kjayaraman alerts.min-instances.warn.threshold:0.8 logs.enabled:true alerts.slack.channel:#data_ingestion alerts.min-healthy.warn.threshold:0.8 tlb.enabled:true]}
-New Backend - {/staging.ix-route 10.181.5.63:31610}
