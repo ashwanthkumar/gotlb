@@ -23,6 +23,8 @@ type MarathonProvider struct {
 	marathonHost string
 }
 
+// NewMarathonProvider creates a new marathon based provider for GoTLB to discover
+// new backends for the TCP server dynamically directly from Marathon's Event bus
 func NewMarathonProvider(marathonHost string) Provider {
 	return &MarathonProvider{
 		marathonHost: marathonHost,
@@ -56,8 +58,8 @@ func (m *MarathonProvider) start() {
 		log.Fatalf("Unable to create marathon client - %v\n", err)
 	}
 
-	// Initialize all the apps since we're bootstrapping
-	m.lookOverAllApps(client)
+	// Scan through all the apps on starting up
+	m.scanAllApps(client)
 
 	eventsChannel, err := client.AddEventsListener(marathon.EventIDAPIRequest | marathon.EventIDStatusUpdate | marathon.EventIDFailedHealthCheck | marathon.EventIDAppTerminated)
 	if err != nil {
@@ -110,7 +112,7 @@ func (m *MarathonProvider) start() {
 	}
 }
 
-func (m *MarathonProvider) lookOverAllApps(client marathon.Marathon) {
+func (m *MarathonProvider) scanAllApps(client marathon.Marathon) {
 	v := url.Values{}
 	v.Set("embed", "apps.tasks")
 	apps, err := client.Applications(v)
