@@ -3,3 +3,5 @@ import:
 - package: github.com/Workiva/go-datastructures
   subpackages:
   - queue
+- package: github.com/gambol99/go-marathon
+  version: 0.7.1

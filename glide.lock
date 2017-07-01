@@ -1,6 +1,14 @@
-hash: 1265ed1829cdaa5c6bcf177a1615c060580cbdc29424f062bd34b63291f17958
-updated: 2017-07-01T16:03:40.858170331+05:30
+hash: dfdc9eff01a14b5b2869c72a7d05418cf5a7bf576fbb17ffe7f78e42e3bb8679
+updated: 2017-07-01T16:32:14.658501722+05:30
 imports:
+- name: github.com/donovanhide/eventsource
+  version: b8f31a59085e69dd2678cf51840db2ac625cb741
+- name: github.com/gambol99/go-marathon
+  version: 6b00a5b651b1beb2c6821863f7c60df490bd46c8
+- name: github.com/google/go-querystring
+  version: 53e6ce116135b80d037921a7fdd5138cf32d7a8a
+  subpackages:
+  - query
 - name: github.com/Workiva/go-datastructures
   version: 01ff43b05e5593e6e41f5988797126402611e2d7
   subpackages:
