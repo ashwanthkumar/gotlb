@@ -13,6 +13,7 @@ func NewFrontend(appId, port string, backends []string) *Frontend {
 		appId:    appId,
 		backends: backends,
 		port:     port,
+		strategy: RoundRobinStrategy(), // TODO - Make this configurable from labels
 	}
 }
 
@@ -23,16 +24,18 @@ type Frontend struct {
 	backends []string
 	port     string
 	listener net.Listener
+	strategy LoadBalancingStrategy
 }
 
 func (f *Frontend) Lookup() string {
-	return f.backends[0] // TODO - Replace this with a Strategy implementation for proper load balancing
+	return f.strategy.Next()
 }
 
 func (f *Frontend) AddBackend(backend string) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	f.backends = append(f.backends, backend)
+	f.strategy.AddBackend(backend)
 }
 
 func (f *Frontend) RemoveBackend(backend string) {
@@ -44,6 +47,7 @@ func (f *Frontend) RemoveBackend(backend string) {
 	} else {
 		log.Printf("[WARN] Backend %s is not part of this frontend - %s\n", backend, f.appId)
 	}
+	f.strategy.RemoveBackend(backend)
 }
 
 func (f *Frontend) findIdxOfBackend(backend string) (int, bool) {
