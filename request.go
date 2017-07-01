@@ -8,9 +8,7 @@ import (
 
 func NewRequest(in net.Conn, backend, appId string) (err error) {
 	var p = Request{backend, appId}
-	// metrics.GetOrRegisterTimer("request-latency", MetricsRegistry).Time(func() {
 	err = p.Accept(in)
-	// })
 	return err
 }
 
