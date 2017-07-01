@@ -5,12 +5,13 @@ import (
 	"net"
 	"sync"
 
+	"github.com/ashwanthkumar/golang-utils/sets"
 	"github.com/rcrowley/go-metrics"
 )
 
 // NewFrontend creates a new Frontend instance with appId, frontend
 // and array of backends.
-func NewFrontend(appId, port string, backends []string) *Frontend {
+func NewFrontend(appId, port string, backends sets.Set) *Frontend {
 	return &Frontend{
 		appId:    appId,
 		backends: backends,
@@ -23,7 +24,7 @@ func NewFrontend(appId, port string, backends []string) *Frontend {
 type Frontend struct {
 	appId    string
 	lock     sync.Mutex
-	backends []string
+	backends sets.Set
 	port     string
 	listener net.Listener
 	strategy LoadBalancingStrategy
@@ -36,16 +37,16 @@ func (f *Frontend) Lookup() string {
 func (f *Frontend) AddBackend(backend string) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	f.backends = append(f.backends, backend)
+	f.backends.Add(backend)
 	f.strategy.AddBackend(backend)
 }
 
 func (f *Frontend) RemoveBackend(backend string) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	idx, found := f.findIdxOfBackend(backend)
+	found := f.backends.Contains(backend)
 	if found {
-		f.backends = append(f.backends[:idx], f.backends[idx+1:]...)
+		f.backends.Remove(backend)
 	} else {
 		log.Printf("[WARN] Backend %s is not part of this frontend - %s\n", backend, f.appId)
 	}
@@ -55,17 +56,7 @@ func (f *Frontend) RemoveBackend(backend string) {
 func (f *Frontend) LenOfBackends() int {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-	return len(f.backends)
-}
-
-func (f *Frontend) findIdxOfBackend(backend string) (int, bool) {
-	for idx, node := range f.backends {
-		if node == backend {
-			return idx, true
-		}
-	}
-
-	return -1, false
+	return f.backends.Size()
 }
 
 // Start listening on the frontend and start routing requests to backends

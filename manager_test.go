@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 
+	"github.com/ashwanthkumar/golang-utils/sets"
 	"github.com/ashwanthkumar/gotlb/types"
 	"github.com/stretchr/testify/assert"
 )
@@ -20,7 +21,7 @@ func TestManagerToCreateNewFrontendIfNotExist(t *testing.T) {
 
 func TestManagerToRemoveFrontend(t *testing.T) {
 	m := NewManager()
-	frontend := createFrontend(APP_ID, "-1", []string{"b:1", "b:2"})
+	frontend := createFrontend(APP_ID, "-1", sets.FromSlice([]string{"b:1", "b:2"}))
 	m.addFrontend(APP_ID, frontend)
 
 	labels := createAppLabels("0")
@@ -38,7 +39,7 @@ func TestManagerToAddBackendForAppShouldThrowAnErrorWhenNoFrontendIsAvailableFor
 
 func TestManagerToAddBackendForApps(t *testing.T) {
 	m := NewManager()
-	frontend := createFrontend(APP_ID, "-1", []string{"b:1", "b:2"})
+	frontend := createFrontend(APP_ID, "-1", sets.FromSlice([]string{"b:1", "b:2"}))
 	assert.Equal(t, 2, frontend.LenOfBackends())
 	m.addFrontend(APP_ID, frontend)
 
@@ -55,7 +56,7 @@ func TestManagerToRemoveBackendForAppShouldThrowAnErrorWhenNoFrontendIsAvailable
 
 func TestManagerToRemoveBackendForApps(t *testing.T) {
 	m := NewManager()
-	frontend := createFrontend(APP_ID, "-1", []string{"b:1", "b:2"})
+	frontend := createFrontend(APP_ID, "-1", sets.FromSlice([]string{"b:1", "b:2"}))
 	assert.Equal(t, 2, frontend.LenOfBackends())
 	m.addFrontend(APP_ID, frontend)
 
@@ -85,6 +86,6 @@ func createBackendInfo(appId string, backend string) *types.BackendInfo {
 	}
 }
 
-func createFrontend(appId, port string, backends []string) *Frontend {
+func createFrontend(appId, port string, backends sets.Set) *Frontend {
 	return NewFrontend(appId, port, backends)
 }

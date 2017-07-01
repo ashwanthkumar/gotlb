@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/ashwanthkumar/golang-utils/maps"
+	"github.com/ashwanthkumar/golang-utils/sets"
 	"github.com/ashwanthkumar/gotlb/providers"
 	"github.com/ashwanthkumar/gotlb/types"
 )
@@ -81,7 +82,7 @@ func (m *Manager) CreateNewFrontendIfNotExist(app *types.AppInfo) {
 	frontend, _ := m.frontends[app.AppId]
 	if frontend == nil && maps.Contains(app.Labels, types.TLB_PORT) {
 		port := maps.GetString(app.Labels, types.TLB_PORT, "-1")
-		frontend = NewFrontend(app.AppId, port, []string{})
+		frontend = NewFrontend(app.AppId, port, sets.Empty())
 		go frontend.Start() // start the frontend
 		m.frontends[app.AppId] = frontend
 	} else {
