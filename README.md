@@ -4,7 +4,7 @@
 
 GoTLB is a Go based TCP Load Balancer built for marathon apps.
 
-*Status*: **Work In Progress**
+*Status*: **Alpha**
 
 ## Usage
 Today we support only marathon based discovery and we would like to add support for other types of backend as well.
